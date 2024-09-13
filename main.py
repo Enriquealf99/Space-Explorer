@@ -258,14 +258,8 @@ def main_game_loop():
     difficulty_timer = pygame.time.get_ticks()  # Start the difficulty timer
     powerup_timer = pygame.time.get_ticks() #Start the powerup timer
     speedup_timer = pygame.time.get_ticks() # Start the speedup timer
-    difficulty_interval = 15000  # Increase difficulty every 15 seconds
     speed_increase = 1  # Amount to increase speed each difficulty increment
     health_increase = 1 # Amount to increase health every
-
-    def spawn_enemy_with_health(speed_increase, health_increase):
-        enemy.health += health_increase  # increase the health based on difficulty
-        enemy.speedy += speed_increase  # Increase the speed based on difficulty
-        return enemy
 
     running = True
     while running:
@@ -289,11 +283,13 @@ def main_game_loop():
                 game_over(screen, player_name)
                 running = False
 
-        hits = pygame.sprite.groupcollide(enemies, bullets, True, pygame.sprite.collide_mask)
+        hits = pygame.sprite.groupcollide(enemies, bullets, False, True)  # False to keep the enemy, True to destroy the bullet
         for hit in hits:
-            hit.take_damage(1)
+            hit.take_damage(1)  # Reduce health by 1 on bullet hit
             score += 10
-            enemy = spawn_enemy(speed_increase, health_increase)  # Spawn a new enemy with increased speed
+            if hit.health <= 0:
+                hit.kill()  # Destroy the enemy if health reaches 0
+            enemy = spawn_enemy(speed_increase, health_increase)  # Spawn a new enemy with increased speed and health
             all_sprites.add(enemy)
             enemies.add(enemy)
         
@@ -321,11 +317,11 @@ def main_game_loop():
             speedup_timer = current_time  # Reset speed-up timer
 
         # increase difficulty
-        if current_time - difficulty_timer > difficulty_interval:
+        if current_time - difficulty_timer > 18000:
             speed_increase += 1  # Increase enemy speed
             health_increase += 1
             # Spawn additional enemies as the difficulty increases
-            for _ in range(8):  # Spawn 8 additional enemies each time difficulty increases
+            for _ in range(3):  # Spawn 3 additional enemies each time difficulty increases
                 enemy = spawn_enemy(speed_increase, health_increase)
                 all_sprites.add(enemy)
                 enemies.add(enemy)
